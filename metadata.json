@@ -1,0 +1,6 @@
+{
+  "name": "Arabi — Personal Portfolio",
+  "description": "Minimalist personal portfolio of Arabi — Entrepreneur / creative director / whatever... from Chittagong, Bangladesh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

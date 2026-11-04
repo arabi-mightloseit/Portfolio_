@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Instrument Serif', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --color-accent-blue: #2946D3;
+  }
+  .theme-noir {
+    --color-accent-blue: #4D6CFA;
+  }
+  .theme-ivory {
+    --color-accent-blue: #2946D3;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-editorial-serif {
+  font-family: var(--font-serif);
+}
+
+.font-editorial-sans {
+  font-family: var(--font-sans);
+}
+
+.font-editorial-mono {
+  font-family: var(--font-mono);
+}
+
+/* Custom selection */
+::selection {
+  background-color: #2946D3;
+  color: #F1EBDD;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* No sideways scrolling, ever.
+   A few decorative layers poke past the viewport edge (the polaroid grid's -inset-6 / -inset-8 halo on
+   phones, 3D panel flips, off-board stickers). Without this the page gets a pointless horizontal
+   scrollbar / sideways wobble that scrolls into nothing.
+   `overflow-x: clip` cuts that overflow off WITHOUT making #root a scroll container, so every
+   `position: sticky` section (header, pinned hero, pinboard, split card) and Lenis' single vertical scroll
+   keep working. Do NOT change this to `overflow-x: hidden`: that turns #root into a scroll container
+   and silently breaks all the sticky sections. */
+#root {
+  overflow-x: clip;
+}
+
+/* Polaroids subtle architectural background grid */
+.polaroid-grid-noir {
+  background-image: 
+    linear-gradient(to right, rgba(85, 119, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(85, 119, 255, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 74%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 74%);
+}
+
+.polaroid-grid-ivory {
+  background-image: 
+    linear-gradient(to right, rgba(41, 70, 211, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(41, 70, 211, 0.16) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 74%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 74%);
+}
+
+/* Staged editorial reveal keyframes */
+@keyframes editorialReveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal-1 {
+  animation: editorialReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.animate-reveal-2 {
+  animation: editorialReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.animate-reveal-3 {
+  animation: editorialReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+
+/* Mechanical slide hardware switch styling */
+.hardware-chassis {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hardware-chassis-light {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.8);
+}

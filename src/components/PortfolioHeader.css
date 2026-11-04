@@ -1,0 +1,209 @@
+/* ==========================================================================
+   Portfolio header — visual layer only.
+
+   LAYOUT CONTRACT (do not change here):
+   The bar's inner height is set in Navigation.tsx as `h-14 md:h-16`
+   (56px / 64px). ArtisticSectionW, ExhibitionRoom01 and ScrollSplitCard
+   rely on that exact height (`sticky top-14 md:top-16`,
+   `calc(100dvh - 3.5rem / 4rem)`), as does the 70px scroll offset in App.tsx.
+   Likewise `sticky top-0 z-40 w-full` stays as Tailwind classes on <header>:
+   ProjectModal is z-50, so the header must stay below it.
+   ========================================================================== */
+
+/* Header wrapper + design tokens (scoped to the header, nothing global) */
+.portfolio-header {
+  --header-bg: #000000;
+  --header-border: rgba(184, 134, 85, 0.14);
+  --accent-bronze: #b88655;
+  --accent-glow: rgba(184, 134, 85, 0.25);
+  --text-primary: #e6e1dc;
+  --text-muted: #736b63;
+  --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  box-sizing: border-box;
+}
+
+.header-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .header-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    padding: 0 2.5rem;
+  }
+}
+
+/* Signature logo.
+   The PNG is black ink on a transparent background, so on a black bar it is
+   recoloured to white by <ArabiSignature variant="light"> (same treatment the
+   site already uses on dark surfaces). Shape and proportions are not altered. */
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  outline: none;
+}
+
+.brand-logo:focus-visible {
+  outline: 1px solid var(--accent-bronze);
+  outline-offset: 3px;
+}
+
+.signature-img {
+  display: block;
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .signature-img {
+    height: 44px;
+  }
+}
+
+/* Right-hand cluster */
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .header-actions {
+    gap: 0.75rem;
+  }
+}
+
+/* Section toggle (pill + track/thumb).
+   Compact by default (shows "L" / "W"); the full "SECTION L / W" label
+   appears from 1024px up, where there is room next to the nav links. */
+.section-toggle {
+  appearance: none;
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 0.4rem 0.45rem 0.4rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-mono, system-ui, -apple-system, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.4s var(--transition-smooth),
+    background-color 0.4s var(--transition-smooth),
+    box-shadow 0.4s var(--transition-smooth),
+    color 0.4s var(--transition-smooth);
+}
+
+@media (min-width: 1024px) {
+  .section-toggle {
+    padding: 0.45rem 0.55rem 0.45rem 1.1rem;
+    gap: 0.85rem;
+  }
+}
+
+.section-toggle:hover {
+  border-color: rgba(184, 134, 85, 0.35);
+  color: var(--text-primary);
+}
+
+.section-toggle:focus-visible {
+  outline: 1px solid var(--accent-bronze);
+  outline-offset: 3px;
+}
+
+/* Label text */
+.toggle-label {
+  position: relative;
+  min-width: 0;
+  text-align: right;
+  transition: color 0.35s var(--transition-smooth);
+}
+
+.toggle-label-prefix {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .toggle-label {
+    min-width: 3.5rem;
+  }
+
+  .toggle-label-prefix {
+    display: inline;
+  }
+}
+
+/* Switch track */
+.toggle-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 22px;
+  background-color: #0a0908;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  box-sizing: border-box;
+  transition:
+    border-color 0.4s var(--transition-smooth),
+    background-color 0.4s var(--transition-smooth);
+}
+
+/* Switch thumb (sliding indicator) */
+.toggle-thumb {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  transform: translate(0, -50%);
+  transition:
+    transform 0.45s var(--transition-smooth),
+    background-color 0.45s var(--transition-smooth),
+    box-shadow 0.45s var(--transition-smooth);
+}
+
+/* Active state (Section W) — driven by `isArmed` in React via the .is-active class */
+.section-toggle.is-active {
+  border-color: rgba(184, 134, 85, 0.45);
+  background: rgba(184, 134, 85, 0.05);
+  box-shadow: 0 0 24px -4px var(--accent-glow);
+  color: var(--text-primary);
+}
+
+.section-toggle.is-active .toggle-track {
+  border-color: rgba(184, 134, 85, 0.4);
+  background-color: #120d09;
+}
+
+.section-toggle.is-active .toggle-thumb {
+  transform: translate(22px, -50%);
+  background-color: var(--accent-bronze);
+  box-shadow: 0 0 10px var(--accent-bronze);
+}
