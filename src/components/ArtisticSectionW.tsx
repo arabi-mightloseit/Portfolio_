@@ -124,9 +124,6 @@ export const ArtisticSectionW: React.FC<ArtisticSectionWProps> = ({
     clamp: true,
   });
 
-  // Micro telemetry readout for current progress
-  const progressPercent = useTransform(progress, (v) => Math.round(v * 100));
-
   // Hero wordmark yields to the signature: fully visible while the hero is still, fades away smoothly
   // over the first 60% of the shrink, and is long gone before the pen starts. Fully reversible on scroll up.
   const wordmarkOpacity = useTransform(progress, [0, HERO_SHRINK_END * 0.6], [1, 0], { clamp: true });
@@ -203,6 +200,8 @@ export const ArtisticSectionW: React.FC<ArtisticSectionWProps> = ({
 
   return (
     <div
+      data-section="w"
+      hidden
       className={`min-h-screen relative flex flex-col justify-start transition-colors duration-700 ${
         isDark ? 'bg-[#06070A] text-[#F1EBDD]' : 'bg-[#F1EBDD] text-[#06070A]'
       }`}
@@ -228,29 +227,28 @@ export const ArtisticSectionW: React.FC<ArtisticSectionWProps> = ({
       >
         {/* Sticky Hero Visual: Pinned inside viewport for the duration of the transition */}
         <div className="sticky top-14 md:top-16 h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-4rem)] w-full overflow-hidden flex flex-col justify-between max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-2 pb-6 z-10">
-          {/* Top Swiss Telemetry Baseline */}
+          {/* Top Swiss telemetry baseline: two cells on one grid line — the location stack on the
+              left, the live Chittagong clock on the right. Those two readings are the whole bar. */}
           <div
-            className={`border-b pb-3 flex flex-wrap items-center justify-between gap-3 text-xs font-editorial-mono tracking-[0.2em] uppercase opacity-85 ${
+            className={`grid grid-cols-2 items-baseline gap-x-6 border-b pb-3 text-xs font-editorial-mono tracking-[0.16em] uppercase opacity-85 ${
               isDark ? 'border-white/10' : 'border-black/10'
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-[#E83B2E] animate-pulse" />
-              <span className="font-bold">SECTION W // ARTISTIC</span>
-              <span className="opacity-40">·</span>
-              <span>CHITTAGONG 22.3569° N, 91.7832° E</span>
-            </div>
+            <span className="flex items-start gap-2.5">
+              <span
+                className="mt-[0.45em] h-2 w-2 shrink-0 rounded-full bg-[#E83B2E] animate-pulse"
+                aria-hidden="true"
+              />
+              <span>
+                <span className="block font-bold">CHITTAGONG</span>
+                <span className="block opacity-60">22.3569° N, 91.7832° E</span>
+              </span>
+            </span>
 
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5">
-                <Clock className={`w-3.5 h-3.5 ${electricBlueText}`} />
-                {bdTime ? `${bdTime} BST` : 'GMT+6'}
-              </span>
-              <span className="opacity-40">·</span>
-              <span className={electricBlueText}>
-                TRANSITION // <motion.span>{progressPercent}</motion.span>%
-              </span>
-            </div>
+            <span className="flex items-center justify-end gap-1.5 whitespace-nowrap tabular-nums">
+              <Clock className={`h-3.5 w-3.5 ${electricBlueText}`} />
+              {bdTime ? `${bdTime} BST` : 'GMT+6'}
+            </span>
           </div>
 
           {/* HERO GRID: Hero Photograph + Hand-drawn Signature Reveal.

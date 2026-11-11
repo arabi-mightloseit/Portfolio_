@@ -21,9 +21,9 @@ import emailEmblem from './assets/contact/email.jpg';
 import { CAMERA_PHOTOS, OBJECTS, noireArchive, noireHalftone } from './components/exhibition/exhibitionData';
 
 /**
- * What a visitor sees the moment the page opens (Section L hero): the portrait and the signature. ~230 KB.
- * These, and only these, gate the preloader curtain (see WAIT_FOR_ALL_IMAGES in src/preloader.ts), so the
- * first screen is never held behind megabytes of images that sit far below the fold.
+ * What a visitor sees the moment the page opens (Section L hero): the portrait and the signature (~230 KB).
+ * They are queued first, ahead of the deeper images, but the curtain now gates on both lists together
+ * (WAIT_FOR_ALL_IMAGES in src/preloader.ts).
  */
 export const FIRST_VIEW_IMAGES: string[] = [portrait, signature];
 

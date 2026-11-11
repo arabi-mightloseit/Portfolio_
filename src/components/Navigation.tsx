@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SignatureSwitch } from './SignatureSwitch';
 import { ArabiSignature } from './ArabiSignature';
 import { ThemeMode } from '../types';
 import { Menu, X } from 'lucide-react';
@@ -7,14 +6,12 @@ import './PortfolioHeader.css';
 
 interface NavigationProps {
   isArmed: boolean;
-  onToggleArmed: (armed: boolean) => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   isArmed,
-  onToggleArmed,
   theme,
   onToggleTheme,
 }) => {
@@ -74,31 +71,28 @@ export const Navigation: React.FC<NavigationProps> = ({
 
         {/* Right Zone: Palette Mode Toggle, Section Switch & Mobile Menu Trigger */}
         <div className="header-actions">
-          {/* Palette Mode Selector [Noir / Ivory] - Hidden on Section W artistic */}
-          {!isArmed && (
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className={`font-editorial-mono text-xs tracking-[0.16em] uppercase px-3 py-1.5 rounded-sm border-2 font-medium transition-colors whitespace-nowrap cursor-pointer ${
-                isNoir
-                  ? 'border-[#383E54] hover:border-[#525B7C] bg-[#181A22] text-[#F1EBDD] hover:bg-[#202330]'
-                  : 'border-[#BAAE96] hover:border-[#8E826B] bg-[#E8DFC9] text-[#101116] hover:bg-[#DDD3BC]'
-              }`}
-              title="Toggle between Pure Black (#101116) and Warm Ivory (#F1EBDD)"
-            >
-              <span className="opacity-60">CANVAS:</span>{' '}
-              <span className={`font-bold ${isNoir ? 'text-[#5577FF]' : 'text-[#2946D3]'}`}>
-                {isNoir ? 'NOIR' : 'IVORY'}
-              </span>
-            </button>
-          )}
+          {/* Palette Mode Selector [Noir / Ivory] - Hidden while Section W is up. Kept mounted (hidden
+              with inline display rather than removed) so the switch below always has a stable sibling. */}
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            style={{ display: isArmed ? 'none' : undefined }}
+            className={`font-editorial-mono text-xs tracking-[0.16em] uppercase px-3 py-1.5 rounded-sm border-2 font-medium transition-colors whitespace-nowrap cursor-pointer ${
+              isNoir
+                ? 'border-[#383E54] hover:border-[#525B7C] bg-[#181A22] text-[#F1EBDD] hover:bg-[#202330]'
+                : 'border-[#BAAE96] hover:border-[#8E826B] bg-[#E8DFC9] text-[#101116] hover:bg-[#DDD3BC]'
+            }`}
+            title="Toggle between Pure Black (#101116) and Warm Ivory (#F1EBDD)"
+          >
+            <span className="opacity-60">CANVAS:</span>{' '}
+            <span className={`font-bold ${isNoir ? 'text-[#5577FF]' : 'text-[#2946D3]'}`}>
+              {isNoir ? 'NOIR' : 'IVORY'}
+            </span>
+          </button>
 
-          {/* Section L / Section W switch */}
-          <SignatureSwitch
-            isArmed={isArmed}
-            onToggle={onToggleArmed}
-            theme={theme}
-          />
+          {/* Mount point for the L / W switch. src/sectionSwitch.ts replaces this span with its own
+              toggle, which is the only thing that shows or hides the two layers. */}
+          <span data-section-switch aria-hidden="true" />
 
           {/* Mobile Menu Button */}
           <button

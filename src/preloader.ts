@@ -24,12 +24,10 @@ import gsap from 'gsap';
 import { FIRST_VIEW_IMAGES, REST_IMAGES } from './preloadManifest';
 
 // ---- tuning -------------------------------------------------------------------------------------------------
-/** Curtain waits only for what the first screen needs (~230 KB); the rest loads quietly in the background.
- *  Previously this was true, which held the curtain — and therefore every piece of content and the LCP
- *  paint — behind ~10 MB of images that are all below the fold. The preloader looks and animates exactly
- *  as before; only what it gates on changed. (Deeper images still arrive before anyone scrolls to them on
- *  any normal connection; a below-the-fold image that is still in flight simply loads the normal way.) */
-const WAIT_FOR_ALL_IMAGES = false;
+/** The curtain waits for every image the site can show (src/preloadManifest.ts) and every font face, so
+ *  nothing is left to pop in once it lifts. FIRST_VIEW_IMAGES still go first, so the progress readout
+ *  tracks the first screen before the deeper galleries. MAX_WAIT_MS remains a hard escape hatch. */
+const WAIT_FOR_ALL_IMAGES = true;
 /** The logo takes at least this long to ink in, even when everything is already cached. */
 const MIN_SHOW_MS = 1600;
 /** Hard ceiling: after this the curtain lifts no matter what is still loading. */

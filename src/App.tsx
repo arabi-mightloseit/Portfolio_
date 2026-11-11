@@ -17,6 +17,7 @@ import { ArabiSignature } from './components/ArabiSignature';
 import { ArtisticSectionW } from './components/ArtisticSectionW';
 import { LiquidScreenPhoto } from './components/LiquidScreenPhoto';
 import { Project, ThemeMode } from './types';
+import { initSectionSwitch } from './sectionSwitch';
 import { playPaperCrunch, playDarkAmbient } from './utils/audio';
 import {
   ArrowUpRight,
@@ -57,8 +58,8 @@ const INITIAL_PROJECTS: Project[] = [
     image: noireProjectImage,
     imageAlt:
       'NOIRÉ typography specimen book open on a concrete surface, showing the NOIRÉ wordmark and the NOIRÉ Regular and NOIRÉ Sans Serif character sets.',
-    linkText: 'Archived Case Brief',
-    linkUrl: '#',
+    linkText: 'Open the live NOIRÉ site',
+    linkUrl: 'https://atelier-noire-demo-eta.vercel.app/',
   },
   {
     id: 'remainder',
@@ -93,16 +94,18 @@ export default function App() {
   // Theme state: defaults to noir (pure black background #101116) as requested, with instant toggle to ivory #F1EBDD
   const [theme, setTheme] = useState<ThemeMode>('noir');
   
-  // Signature Switch state for "OTHERWISE" (structure for future creative reveal)
+  // Section W visibility. The switch runtime (src/sectionSwitch.ts) owns showing and hiding the two
+  // layers; this state only mirrors it for the React-owned chrome: nav, palette button and footer labels.
   const [isOtherwiseArmed, setIsOtherwiseArmed] = useState<boolean>(false);
 
-  const handleToggleArmed = (armed: boolean) => {
-    setIsOtherwiseArmed(armed);
-    window.scrollTo(0, 0);
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { immediate: true });
-    }
-  };
+  useEffect(() => {
+    const onSwitch = (event: Event) => {
+      const detail = (event as CustomEvent<{ showingB?: boolean }>).detail;
+      setIsOtherwiseArmed(Boolean(detail?.showingB));
+    };
+    window.addEventListener('sx:change', onSwitch);
+    return () => window.removeEventListener('sx:change', onSwitch);
+  }, []);
 
   // Selected work is fixed content: the portfolio only shows real, documented projects.
   const projects = INITIAL_PROJECTS;
@@ -137,6 +140,8 @@ export default function App() {
       wheelMultiplier: 0.95,
     });
     lenisRef.current = lenis;
+    // The section-switch runtime scrolls through this same instance (src/sectionSwitch.ts).
+    (window as unknown as { lenis?: Lenis | null }).lenis = lenis;
 
     let rafId: number;
     function raf(time: number) {
@@ -149,7 +154,13 @@ export default function App() {
       cancelAnimationFrame(rafId);
       lenis.destroy();
       lenisRef.current = null;
+      (window as unknown as { lenis?: Lenis | null }).lenis = null;
     };
+  }, []);
+
+  // Hand both layers to the switch runtime once React has committed them to the DOM.
+  useEffect(() => {
+    initSectionSwitch();
   }, []);
 
   // Current Chittagong local time calculation
@@ -267,19 +278,16 @@ export default function App() {
       {/* Top Bar with Top-Left Hardware Switch & 3-Zone Contract */}
       <Navigation
         isArmed={isOtherwiseArmed}
-        onToggleArmed={handleToggleArmed}
         theme={activeTheme}
         onToggleTheme={handleToggleTheme}
       />
 
-      {/* Main Content Area - Switches between Section W (Digital Exhibition) and Section L (Editorial Monograph) */}
-      {isOtherwiseArmed ? (
-        <ArtisticSectionW
-          theme={activeTheme}
-          bdTime={bdTime}
-        />
-      ) : (
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-10 pb-16 md:pb-24 space-y-20 md:space-y-28">
+      {/* Both layers stay mounted. src/sectionSwitch.ts reveals one at a time with the `hidden`
+          attribute and wipes between them; the header, palette and footer follow its `sx:change` event. */}
+      <main
+        data-section="default"
+        className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-10 pb-16 md:pb-24 space-y-20 md:space-y-28"
+      >
         
         {/* HERO SECTION */}
         <section id="hero" className="pt-1 md:pt-4">
@@ -965,7 +973,11 @@ export default function App() {
           </div>
         </section>
       </main>
-      )}
+
+      <ArtisticSectionW
+        theme={activeTheme}
+        bdTime={bdTime}
+      />
 
       {/* FOOTER */}
       <footer
