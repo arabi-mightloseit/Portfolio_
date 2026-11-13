@@ -14,6 +14,7 @@
  */
 
 import type Lenis from 'lenis';
+import { TransitionArt } from './curtain-art.js';
 
 /** Lenis' own package type declares a different `window.lenis`; read ours through one cast. */
 const getLenis = (): Lenis | null | undefined =>
@@ -133,14 +134,6 @@ export function initSectionSwitch(): void {
   .sx-ink{ position:absolute; inset:0; background:${CFG.ink}; }
   .sx-cols{ position:absolute; inset:0; display:flex; }
   .sx-cols i{ flex:1; background:rgb(${CFG.accent}); margin-right:-1px; }
-  .sx-word{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    mix-blend-mode:difference; color:#fff; white-space:nowrap;
-    font-family:inherit; font-weight:800; font-size:clamp(64px,18vw,260px);
-    line-height:1; letter-spacing:-.04em; text-transform:uppercase;
-  }
-  .sx-word b{ display:inline-block; font-weight:inherit; }
-
   @keyframes sx-spin{ to{ --sx-a:360deg; } }
   @keyframes sx-pulse{
     0%{ box-shadow:0 0 0 0 rgba(${CFG.accent},.55); }
@@ -162,6 +155,7 @@ export function initSectionSwitch(): void {
   toggle.setAttribute('role', 'switch');
   toggle.setAttribute('aria-checked', 'false');
   toggle.setAttribute('aria-label', 'Switch between Section L and Section W');
+  toggle.title = 'Switch between Section L and Section W';
   toggle.dataset.touched = 'false';
   toggle.dataset.busy = 'false';
   toggle.innerHTML = `<span class="sx-knob"></span>
@@ -173,16 +167,26 @@ export function initSectionSwitch(): void {
   else header.appendChild(toggle);
 
   const NCOLS = 6;
+  // Curtain geometry, taken from the sweep in step 2 of go(). The art's morph must begin exactly when
+  // the last pillar has landed, so CURTAIN_TOTAL_MS is derived from these, not guessed.
+  const PILLAR_DURATION = 620;
+  const PILLAR_DELAY = 140;
+  const PILLAR_STAGGER = 260;
+  const CURTAIN_TOTAL_MS =
+    (PILLAR_DELAY + (NCOLS - 1) * PILLAR_STAGGER + PILLAR_DURATION) / (CFG.speed || 1);
   const curtain = document.createElement('div');
   curtain.className = 'sx-curtain';
   curtain.setAttribute('aria-hidden', 'true');
   curtain.innerHTML = `<div class="sx-ink"></div><div class="sx-cols">${'<i></i>'.repeat(
     NCOLS,
-  )}</div><div class="sx-word"></div>`;
+  )}</div>`;
   document.body.appendChild(curtain);
   const ink = curtain.querySelector<HTMLElement>('.sx-ink')!;
   const cols = Array.from(curtain.querySelectorAll<HTMLElement>('.sx-cols i'));
-  const word = curtain.querySelector<HTMLElement>('.sx-word')!;
+
+  // Pillar faces. The pillars are built once and reused on every press, so the art is mounted here and
+  // re-laid out by its own start() each time the curtain drops.
+  TransitionArt.mount(cols);
 
   // Keep the header (and the button inside it) above the curtain.
   if (getComputedStyle(header).position === 'static') header.style.position = 'relative';
@@ -240,16 +244,6 @@ export function initSectionSwitch(): void {
     });
     return Promise.all(jobs).then(() => undefined);
   }
-
-  const setWord = (text: string): HTMLElement[] => {
-    word.innerHTML = '';
-    [...text].forEach((ch) => {
-      const b = document.createElement('b');
-      b.textContent = ch === ' ' ? '\u00A0' : ch;
-      word.appendChild(b);
-    });
-    return Array.from(word.children) as HTMLElement[];
-  };
 
   const toTop = () =>
     new Promise<void>((resolve) => {
@@ -324,10 +318,13 @@ export function initSectionSwitch(): void {
     A.hidden = toB;
     B.hidden = !toB;
     curtain.style.display = 'none';
-    word.innerHTML = '';
     unlockScroll();
     refreshScroll();
     toggle.setAttribute('aria-checked', String(toB));
+    // The button names the next press, matching the copy the returning curtain carries.
+    const nextLabel = toB ? 'Back to mediocrity' : 'Switch between Section L and Section W';
+    toggle.setAttribute('aria-label', nextLabel);
+    toggle.title = nextLabel;
     // Both layers measure differently once the other one is laid out; re-measure scroll timelines.
     window.dispatchEvent(new Event('resize'));
     window.dispatchEvent(new CustomEvent('sx:change', { detail: { showingB: toB } }));
@@ -367,7 +364,6 @@ export function initSectionSwitch(): void {
     try {
       const from = toB ? A : B;
       const to = toB ? B : A;
-      const label = CFG.labels[toB ? 1 : 0];
 
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         from.hidden = true;
@@ -389,8 +385,9 @@ export function initSectionSwitch(): void {
       // 2. Collapse current content + curtain sweeps in.
       const outEls = ord(targets(from).filter(inView).slice(0, CFG.maxEls));
       curtain.style.setProperty('--sx-hh', `${Math.max(0, header.getBoundingClientRect().bottom)}px`);
-      const chars = setWord(label);
       curtain.style.display = 'block';
+      // The pillars start dropping now; their faces morph the moment the last one lands.
+      TransitionArt.play(toB ? 'toW' : 'toL', CURTAIN_TOTAL_MS);
 
       const collapse = play(
         outEls,
@@ -406,14 +403,13 @@ export function initSectionSwitch(): void {
       const offIn = `translateY(${100 * s}%)`;
       const cover = Promise.all([
         play(ink, FROM({ transform: offIn }), { d: 620, ease: EASE.io }),
-        play(sweep, FROM({ transform: offIn }), { d: 620, delay: 140, stagger: 260, ease: EASE.io }),
+        play(sweep, FROM({ transform: offIn }), {
+          d: PILLAR_DURATION,
+          delay: PILLAR_DELAY,
+          stagger: PILLAR_STAGGER,
+          ease: EASE.io,
+        }),
       ]);
-      play(chars, FROM({ transform: `translateY(${70 * s}%) rotate(${10 * s}deg)`, opacity: 0 }), {
-        d: 650,
-        delay: 420,
-        stagger: 240,
-        ease: EASE.out,
-      });
 
       await Promise.all([collapse, cover]);
       chk();
@@ -429,12 +425,6 @@ export function initSectionSwitch(): void {
       const inEls = ord(targets(to).filter(inView).slice(0, CFG.maxEls));
 
       // 4. Curtain leaves, new content expands from the mirrored edge.
-      play(
-        chars,
-        TO({ transform: `translateY(${-70 * s}%) rotate(${-10 * s}deg)`, opacity: 0 }),
-        { d: 380, stagger: 120, ease: EASE.in, fill: 'forwards' },
-      );
-
       const offOut = `translateY(${-100 * s}%)`;
       const uncover = Promise.all([
         play(sweep, TO({ transform: offOut }), {
